@@ -1,6 +1,6 @@
-# AGENTS.md - Coding Guidelines for comet
+# AGENTS.md - Coding Guidelines for metcomet
 
-This file provides guidelines for AI agents working on the comet codebase (Meteora DLMM helper library).
+This file provides guidelines for AI agents working on the metcomet codebase (Meteora DLMM helper library).
 
 ## Build & Development Commands
 

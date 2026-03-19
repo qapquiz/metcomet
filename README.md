@@ -1,11 +1,11 @@
-# comet
+# metcomet
 
 Meteora DLMM helper library for Solana
 
 ## Installation
 
 ```bash
-bun add comet
+bun add metcomet
 ```
 
 ## Features
@@ -20,7 +20,7 @@ bun add comet
 
 ```typescript
 import { Connection, PublicKey } from "@solana/web3.js";
-import { getAllUserPositions, getUpnl, getCurrentSolPrice } from "comet";
+import { getAllUserPositions, getUpnl, getCurrentSolPrice } from "metcomet";
 
 const connection = new Connection("https://api.mainnet-beta.solana.com");
 const wallet = new PublicKey("...");
@@ -67,6 +67,12 @@ const solPrice = await getCurrentSolPrice({ connection });
 - Solana web3.js
 - Meteora DLMM SDK
 - Helius API key (for PnL and initial deposit features)
+
+## How to publish to npmjs
+
+```
+bun pm pack && npm publish ./*.tgz --access public
+```
 
 ## Contributing
 
