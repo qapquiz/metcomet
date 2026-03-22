@@ -1,11 +1,7 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getSolPriceByTimestamp } from "./solPrice";
 import { getPairPriceByTimestamp } from "./ohlcv";
-import {
-	getAllUserPositions,
-	getPositionSummaries,
-	type PositionSummary,
-} from "./positions";
+import { getAllUserPositions, getPositionSummaries, type PositionSummary } from "./positions";
 import type { PositionInfo } from "@meteora-ag/dlmm";
 
 const SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -95,22 +91,16 @@ async function getInitialDepositsHelius(
 		summaries: providedSummaries,
 	} = params;
 
-	const positions =
-		providedPositions ??
-		(await getAllUserPositions({ connection, walletAddress }));
+	const positions = providedPositions ?? (await getAllUserPositions({ connection, walletAddress }));
 	if (!positions) {
 		console.log("No positions found");
 		return new Map();
 	}
 
-	const summaries =
-		providedSummaries ?? (await getPositionSummaries(positions, connection));
+	const summaries = providedSummaries ?? (await getPositionSummaries(positions, connection));
 
 	const positionToPair = new Map<string, string>();
-	const pairToMints = new Map<
-		string,
-		{ tokenXMint: string; tokenYMint: string }
-	>();
+	const pairToMints = new Map<string, { tokenXMint: string; tokenYMint: string }>();
 	const allPositionAddresses = new Set<string>();
 
 	for (const summary of summaries) {
@@ -150,10 +140,7 @@ async function getInitialDepositsHelius(
 			allAccounts.add(data.account);
 		}
 
-		const positionAddress = findPositionInAccounts(
-			Array.from(allAccounts),
-			allPositionAddresses,
-		);
+		const positionAddress = findPositionInAccounts(Array.from(allAccounts), allPositionAddresses);
 
 		if (!positionAddress) continue;
 
@@ -184,45 +171,33 @@ async function getInitialDepositsHelius(
 		const newTokenYAmount = (existing?.tokenYAmount ?? 0) + tokenYAmount;
 
 		let valueInUsd: number | null = existing?.valueInUsd ?? null;
+		let valueInSol = 0;
 		try {
 			const solPrice = await getSolPriceByTimestamp({
 				timestamp: tx.timestamp,
 			});
 
-			const pairPrice = await getPairPriceByTimestamp(
-				pairAddress,
-				tx.timestamp,
-			);
+			const pairPrice = await getPairPriceByTimestamp(pairAddress, tx.timestamp);
 
 			if (solPrice !== null && pairPrice !== null) {
-				let tokenXPriceInSol: number;
-				let tokenYPriceInSol: number;
-
 				if (mints.tokenYMint === SOL_MINT) {
-					tokenXPriceInSol = pairPrice.price;
-					tokenYPriceInSol = 1;
+					const tokenXPriceInSol = pairPrice.price;
+					const tokenYPriceInSol = 1;
+					valueInSol = newTokenXAmount * tokenXPriceInSol + newTokenYAmount * tokenYPriceInSol;
+					valueInUsd =
+						(newTokenXAmount * tokenXPriceInSol + newTokenYAmount * tokenYPriceInSol) * solPrice;
 				} else if (mints.tokenXMint === SOL_MINT) {
-					tokenXPriceInSol = 1;
-					tokenYPriceInSol = 1 / pairPrice.price;
+					const tokenXPriceInSol = 1;
+					const tokenYPriceInSol = 1 / pairPrice.price;
+					valueInSol = newTokenXAmount * tokenXPriceInSol + newTokenYAmount * tokenYPriceInSol;
+					valueInUsd =
+						(newTokenXAmount * tokenXPriceInSol + newTokenYAmount * tokenYPriceInSol) * solPrice;
 				} else {
 					console.log(`Neither token is SOL, cannot calculate USD value`);
-					continue;
 				}
-
-				const tokenXValueUsd = newTokenXAmount * tokenXPriceInSol * solPrice;
-				const tokenYValueUsd = newTokenYAmount * tokenYPriceInSol * solPrice;
-
-				valueInUsd = tokenXValueUsd + tokenYValueUsd;
 			}
 		} catch {
 			console.log(`Could not fetch price for timestamp ${tx.timestamp}`);
-		}
-
-		let valueInSol = 0;
-		if (mints.tokenXMint === SOL_MINT) {
-			valueInSol = newTokenXAmount;
-		} else if (mints.tokenYMint === SOL_MINT) {
-			valueInSol = newTokenYAmount;
 		}
 
 		initialDeposits.set(positionAddress, {
