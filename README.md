@@ -50,7 +50,7 @@ const solPrice = await getCurrentSolPrice({ connection });
 ```typescript
 import { fetchOpenPortfolio, fetchClosedPortfolio, fetchProtocolMetrics } from "metcomet";
 
-const wallet = "87bdcSg4zvjExbvsUSbGifYUp75JdLhLafjgwvCjzjkA";
+const wallet = "<your-solana-wallet>";
 
 // Get user's open positions with USD/SOL values
 const openPortfolio = await fetchOpenPortfolio({ user: wallet });
