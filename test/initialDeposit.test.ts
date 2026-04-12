@@ -1,6 +1,5 @@
 import { expect, test, describe } from "bun:test";
 import { PublicKey, Connection } from "@solana/web3.js";
-import type { PositionInfo } from "@meteora-ag/dlmm";
 import { getInitialDepositsHelius } from "../src/initialDepositHelius";
 import { TEST_WALLET, mockOHLCVResponse } from "./helpers";
 import type { PositionSummary } from "../src/positions";

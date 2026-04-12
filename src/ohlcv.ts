@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 
-interface OHLCVCandle {
+interface OHLCVCandleData {
 	timestamp: number;
 	timestamp_str: string;
 	open: number;
@@ -10,14 +10,14 @@ interface OHLCVCandle {
 	volume: number;
 }
 
-interface OHLCVResponse {
+interface OHLCVData {
 	start_time: number;
 	end_time: number;
 	timeframe: string | null;
-	data: OHLCVCandle[];
+	data: OHLCVCandleData[];
 }
 
-interface FetchOHLCVParams {
+interface LegacyFetchOHLCVParams {
 	poolAddress: PublicKey | string;
 	timeframe?: string;
 	endTime?: number;
@@ -29,8 +29,8 @@ interface PairPrice {
 }
 
 async function fetchOHLCV(
-	params: FetchOHLCVParams,
-): Promise<OHLCVResponse | null> {
+	params: LegacyFetchOHLCVParams,
+): Promise<OHLCVData | null> {
 	const { poolAddress, timeframe = "1h", endTime } = params;
 	const address =
 		typeof poolAddress === "string" ? poolAddress : poolAddress.toString();
@@ -38,7 +38,7 @@ async function fetchOHLCV(
 
 	try {
 		const response = await fetch(url);
-		const ohlcvData = (await response.json()) as OHLCVResponse;
+		const ohlcvData = (await response.json()) as OHLCVData;
 		return ohlcvData;
 	} catch (error) {
 		console.error(`Failed to fetch OHLCV data: ${error}`);
@@ -46,7 +46,7 @@ async function fetchOHLCV(
 	}
 }
 
-function getLatestCandle(ohlcvData: OHLCVResponse): OHLCVCandle | null {
+function getLatestCandle(ohlcvData: OHLCVData): OHLCVCandleData | null {
 	if (ohlcvData.data && ohlcvData.data.length > 0) {
 		return ohlcvData.data[ohlcvData.data.length - 1] ?? null;
 	}
@@ -76,5 +76,5 @@ async function getPairPriceByTimestamp(
 	};
 }
 
-export type { OHLCVCandle, OHLCVResponse, FetchOHLCVParams, PairPrice };
+export type { LegacyFetchOHLCVParams, PairPrice };
 export { fetchOHLCV, getLatestCandle, getPairPriceByTimestamp };

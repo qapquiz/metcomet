@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import type { OHLCVResponse } from "../src/ohlcv";
+import type { OHLCVResponse } from "../src/api";
 
 export const SOL_USDC_POOL = "BGm1tav58oGcsQJehL9WXBFXF7D27vZsKefj4xJKD5Y";
 export const TEST_WALLET = new PublicKey("7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU");
