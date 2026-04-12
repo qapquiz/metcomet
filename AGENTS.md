@@ -54,10 +54,12 @@ bun run type-check
 
 ### Naming Conventions
 - **Files**: camelCase for source files (e.g., `positions.ts`, `solPrice.ts`)
+- **Directories**: camelCase for feature directories (e.g., `api/`)
 - **Interfaces**: PascalCase (e.g., `PositionSummary`, `FetchOHLCVParams`)
 - **Types**: PascalCase (e.g., `PairAddress`)
-- **Functions**: camelCase (e.g., `getAllUserPositions`, `fetchOHLCV`)
+- **Functions**: camelCase (e.g., `getAllUserPositions`, `fetchPool`)
 - **Variables**: camelCase
+- **API functions**: Prefix with `fetch` (e.g., `fetchPools`, `fetchPortfolio`)
 
 ### Import Patterns
 - Use ES modules with `type: "module"`
@@ -116,16 +118,52 @@ export { function1, function2 };
 
 ```
 src/
-├── index.ts          # Main exports
-├── positions.ts      # DLMM position management
-├── ohlcv.ts          # OHLCV data fetching
-├── solPrice.ts       # SOL price utilities
-├── upnl.ts           # Unrealized PnL calculations
-└── initialDepositHelius.ts  # Helius integration
+├── index.ts              # Main exports (re-exports all modules)
+├── positions.ts          # DLMM SDK position management
+├── ohlcv.ts             # OHLCV helpers (legacy, uses DLMM API)
+├── solPrice.ts          # SOL price utilities
+├── upnl.ts              # Unrealized PnL calculations
+├── initialDepositHelius.ts  # Helius integration for deposit tracking
+└── api/                 # DLMM API wrappers (fetch-based)
+    ├── index.ts         # Re-exports all API functions and types
+    ├── pools.ts         # Pool API functions
+    ├── portfolio.ts      # Portfolio API functions
+    └── types.ts         # API response types
 
 test/
-└── index.test.ts     # Test suite
+├── helpers.ts           # Shared test utilities
+├── initialDeposit.test.ts
+├── ohlcv.test.ts
+├── positions.test.ts
+├── solPrice.test.ts
+├── upnl.test.ts
+├── api-pools.test.ts    # Pool API tests
+└── api-portfolio.test.ts # Portfolio API tests
 ```
+
+## API Module Guidelines
+
+The `src/api/` directory wraps the [Meteora DLMM API](https://dlmm.datapi.meteora.ag).
+
+### API Base URL
+```
+https://dlmm.datapi.meteora.ag
+```
+
+### Naming Conventions for API Functions
+- Functions use `fetch` prefix (e.g., `fetchPools`, `fetchPortfolio`)
+- Avoid naming conflicts with SDK functions (e.g., `fetchPoolOHLCV` vs `fetchOHLCV`)
+- Helper functions use descriptive names (e.g., `getLatestOHLCVCandle`)
+
+### API Types
+- All API response types are defined in `src/api/types.ts`
+- Types are exported from `src/api/index.ts`
+- Match actual API response structure (verify with live API if needed)
+
+### Rate Limiting
+- Public API allows 30 requests/second per IP
+- For mobile apps, each device has its own IP (no backend needed)
+- For web apps served from a single server, all users share the same IP
 
 ## Git Hooks
 
@@ -135,7 +173,7 @@ Pre-commit hooks run automatically:
 
 ## Commit Conventions
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+Follow [Conventional Commits](https://www.conventionalcommits.org):
 - `feat:` New features
 - `fix:` Bug fixes
 - `docs:` Documentation changes
@@ -156,5 +194,5 @@ Key dependencies to be aware of:
 ## Common Constants
 
 - SOL mint address: `"So11111111111111111111111111111111111111112"`
-- Uses Meteora AG DLMM API endpoints
+- DLMM API base URL: `https://dlmm.datapi.meteora.ag`
 - Supports both PublicKey objects and base58 strings for addresses

@@ -15,8 +15,11 @@ bun add metcomet
 - **SOL Price** - Get current and historical SOL prices from DLMM pools
 - **OHLCV Data** - Fetch candlestick data for trading analysis
 - **Initial Deposits** - Track initial deposit values via Helius
+- **DLMM API** - Direct access to Meteora DLMM API for pools, portfolios, positions, and protocol metrics
 
 ## Usage
+
+### SDK-based (on-chain data)
 
 ```typescript
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -42,25 +45,68 @@ const upnl = await getUpnl({
 const solPrice = await getCurrentSolPrice({ connection });
 ```
 
-## API
+### API-based (pre-computed data)
 
-### Positions
+```typescript
+import { fetchOpenPortfolio, fetchClosedPortfolio, fetchProtocolMetrics } from "metcomet";
+
+const wallet = "87bdcSg4zvjExbvsUSbGifYUp75JdLhLafjgwvCjzjkA";
+
+// Get user's open positions with USD/SOL values
+const openPortfolio = await fetchOpenPortfolio({ user: wallet });
+
+// Get user's closed positions with PnL
+const closedPortfolio = await fetchClosedPortfolio({ user: wallet });
+
+// Get protocol-wide metrics
+const metrics = await fetchProtocolMetrics();
+```
+
+## API Reference
+
+### SDK-based Functions (On-chain)
+
+#### Positions
 
 - `getAllUserPositions(params)` - Get all DLMM positions for a wallet
 - `getPositionSummaries(params)` - Get detailed position summaries with values
 
-### PnL
+#### PnL
 
 - `getUpnl(params)` - Calculate unrealized PnL including fees
+- `getUpnlPerPosition(params)` - Calculate PnL per position
 
-### Price
+#### Price
 
 - `getCurrentSolPrice(params)` - Get current SOL price from DLMM pool
 - `getSolPriceByTimestamp(params)` - Get SOL price at a specific timestamp
 
-### OHLCV
+#### OHLCV
 
 - `fetchOHLCV(params)` - Fetch candlestick data for analysis
+- `getPairPriceByTimestamp(params)` - Get pair price at a specific timestamp
+
+### API-based Functions (DLMM API)
+
+#### Pools
+
+- `fetchPools(params?)` - List pools with filtering/sorting/pagination
+- `fetchPool(address)` - Get single pool details
+- `fetchPoolOHLCV(params)` - Fetch candlestick data
+- `getLatestOHLCVCandle(data)` - Get the latest candle from OHLCV data
+- `fetchVolumeHistory(params)` - Fetch historical volume
+- `fetchGroups(params?)` - List pool groups
+- `fetchGroup(lexicalOrderMints)` - Get single pool group
+
+#### Portfolio
+
+- `fetchOpenPortfolio(params)` - Get user's open positions with balances and fees
+- `fetchClosedPortfolio(params)` - Get user's closed positions with PnL
+- `fetchPortfolioTotal(user)` - Get total portfolio PnL across all pools
+- `fetchPositionPnL(params)` - Get per-position PnL data for a pool
+- `fetchPositionHistory(params)` - Get historical events for a position
+- `fetchProtocolMetrics()` - Get protocol-wide metrics
+- `fetchWalletPoolClaims(params)` - Get total claimed fees and rewards
 
 ## Requirements
 
