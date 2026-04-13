@@ -435,6 +435,33 @@ export interface FetchWalletPoolClaimsParams {
 }
 
 // ============================================================
+// All Open Positions with PnL Types
+// ============================================================
+
+export interface PositionWithPoolInfo {
+	position: PositionPnLData;
+	poolAddress: string;
+	tokenX: string;
+	tokenY: string;
+	tokenXSymbol: string;
+	tokenYSymbol: string;
+	tokenXIcon: string;
+	tokenYIcon: string;
+	binStep: number;
+}
+
+export interface AllOpenPositionsResponse {
+	positions: PositionWithPoolInfo[];
+	totalCount: number;
+	solPrice: string | null;
+}
+
+export interface FetchAllOpenPositionsParams {
+	user: string;
+	page_size?: number;
+}
+
+// ============================================================
 // Pool Groups Types
 // ============================================================
 

@@ -70,6 +70,66 @@ const metrics = await fetchProtocolMetrics();
 
 - `getAllUserPositions(params)` - Get all DLMM positions for a wallet
 - `getPositionSummaries(params)` - Get detailed position summaries with values
+- `getAllUserPositionsWithPnL(connection, wallet, options?)` - Get positions with merged PnL data (SDK + API)
+
+#### Enriched Positions (SDK + API)
+
+`enrichedPositions.ts` provides utilities to merge SDK positions with API PnL data.
+
+**Approach 1: Convenience wrapper (all-in-one)**
+
+```typescript
+import { Connection, PublicKey } from "@solana/web3.js";
+import { getAllUserPositionsWithPnL } from "metcomet";
+
+const enriched = await getAllUserPositionsWithPnL(connection, wallet, {
+  status: "open",  // "open" | "closed" | "all" (default: "open")
+  pageSize: 50,    // PnL page size per pool (default: 50)
+});
+```
+
+**Approach 2: Separate calls + manual merge (more control)**
+
+```typescript
+import { Connection, PublicKey } from "@solana/web3.js";
+import DLMM from "@meteora-ag/dlmm";
+import { fetchPositionPnL } from "metcomet";
+import { mergePositionsWithPnL } from "metcomet";
+
+// 1. Get positions from SDK
+const sdkPositions = await DLMM.getAllLbPairPositionsByUser(connection, wallet);
+const poolAddresses = [...sdkPositions.keys()];
+
+// 2. Fetch PnL for each pool (parallel)
+const pnlResults = await Promise.all(
+  poolAddresses.map(addr =>
+    fetchPositionPnL({ poolAddress: addr, user: wallet.toBase58() })
+  )
+);
+
+// 3. Merge SDK + API data
+const enriched = mergePositionsWithPnL(sdkPositions, pnlResults, poolAddresses);
+```
+
+**Returns:** `EnrichedPosition[]` where each position includes both SDK data (`LbPosition`) and API PnL data (`PositionPnLData`).
+
+```typescript
+for (const pool of enriched ?? []) {
+  console.log(`Pool: ${pool.poolAddress}`);
+  
+  for (const pos of pool.positions) {
+    console.log(`Position: ${pos.publicKey.toBase58()}`);
+    
+    if (pos.pnl) {
+      console.log(`  PnL USD: $${pos.pnl.pnlUsd} (${pos.pnl.pnlPctChange}%)`);
+      console.log(`  PnL SOL: ${pos.pnl.pnlSol} (${pos.pnl.pnlSolPctChange}%)`);
+      console.log(`  In Range: ${!pos.pnl.isOutOfRange}`);
+      console.log(`  Total Deposit: $${pos.pnl.allTimeDeposits.total.usd}`);
+      // Fees: claimed = allTimeFees.total.usd, unclaimed = unrealizedPnl
+    }
+  }
+}
+```
 
 #### PnL
 

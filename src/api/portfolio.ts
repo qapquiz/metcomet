@@ -11,6 +11,9 @@ import type {
 	ProtocolMetricsResponse,
 	WalletTotalClaimsResponse,
 	FetchWalletPoolClaimsParams,
+	AllOpenPositionsResponse,
+	FetchAllOpenPositionsParams,
+	PositionWithPoolInfo,
 } from "./types";
 
 const BASE_URL = "https://dlmm.datapi.meteora.ag";
@@ -165,6 +168,65 @@ async function fetchWalletPoolClaims(params: FetchWalletPoolClaimsParams): Promi
 	}
 }
 
+// ============================================================
+// Helper: Fetch All Open Positions with PnL
+// ============================================================
+
+async function fetchAllOpenPositionsWithPnL(params: FetchAllOpenPositionsParams): Promise<AllOpenPositionsResponse | null> {
+	const { user, page_size = 100 } = params;
+
+	try {
+		// Fetch open portfolio to get all pools with open positions
+		const openPortfolio = await fetchOpenPortfolio({ user, page: 1, page_size });
+		if (!openPortfolio) {
+			console.error("Failed to fetch open portfolio");
+			return null;
+		}
+
+		const allPositions: PositionWithPoolInfo[] = [];
+		let solPrice: string | null = openPortfolio.solPrice;
+
+		// Fetch PnL for each pool with open positions
+		for (const pool of openPortfolio.pools) {
+			if (pool.openPositionCount === 0) continue;
+
+			const pnlResponse = await fetchPositionPnL({
+				poolAddress: pool.poolAddress,
+				user,
+				status: "open",
+				page: 1,
+				page_size,
+			});
+
+			if (!pnlResponse) continue;
+
+			// Attach pool info to each position
+			for (const position of pnlResponse.positions) {
+				allPositions.push({
+					position,
+					poolAddress: pool.poolAddress,
+					tokenX: pool.tokenXMint,
+					tokenY: pool.tokenYMint,
+					tokenXSymbol: pool.tokenX,
+					tokenYSymbol: pool.tokenY,
+					tokenXIcon: pool.tokenXIcon,
+					tokenYIcon: pool.tokenYIcon,
+					binStep: pool.binStep,
+				});
+			}
+		}
+
+		return {
+			positions: allPositions,
+			totalCount: allPositions.length,
+			solPrice,
+		};
+	} catch (error) {
+		console.error(`Failed to fetch all open positions with PnL: ${error}`);
+		return null;
+	}
+}
+
 export {
 	fetchClosedPortfolio,
 	fetchOpenPortfolio,
@@ -173,4 +235,5 @@ export {
 	fetchPositionHistory,
 	fetchProtocolMetrics,
 	fetchWalletPoolClaims,
+	fetchAllOpenPositionsWithPnL,
 };

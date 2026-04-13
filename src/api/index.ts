@@ -18,6 +18,7 @@ export {
 	fetchPositionHistory,
 	fetchProtocolMetrics,
 	fetchWalletPoolClaims,
+	fetchAllOpenPositionsWithPnL,
 } from "./portfolio";
 
 // Types

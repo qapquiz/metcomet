@@ -120,6 +120,7 @@ export { function1, function2 };
 src/
 ├── index.ts              # Main exports (re-exports all modules)
 ├── positions.ts          # DLMM SDK position management
+├── enrichedPositions.ts  # Positions merged with API PnL data (SDK + API)
 ├── ohlcv.ts             # OHLCV helpers (legacy, uses DLMM API)
 ├── solPrice.ts          # SOL price utilities
 ├── upnl.ts              # Unrealized PnL calculations
@@ -135,6 +136,7 @@ test/
 ├── initialDeposit.test.ts
 ├── ohlcv.test.ts
 ├── positions.test.ts
+├── enrichedPositions.test.ts # Enriched positions test
 ├── solPrice.test.ts
 ├── upnl.test.ts
 ├── api-pools.test.ts    # Pool API tests
